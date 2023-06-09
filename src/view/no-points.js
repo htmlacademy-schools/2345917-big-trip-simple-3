@@ -1,7 +1,7 @@
 import AbstractView from '../framework/view/abstract-view.js';
 
 function createNoPointViewTemplate() {
-  const template = '<p class="trip-events__msg">Click New Event to create your first point</p>';
+  const template = '<p class="trip-events__msg">Loading...</p>';
 
   return template;
 }
