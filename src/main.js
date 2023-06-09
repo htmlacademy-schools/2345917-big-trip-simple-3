@@ -1,12 +1,12 @@
-import {render} from './render.js';
-import Filters from './view/filters.js';
-import Presenter from './presenter/presenter.js';
+import { generateRandomDestinations } from './path/destinations';
+import { generateRandomList } from './path/offers';
+import { generateRandomTripPoints } from './path/route-point-path';
+import PagePresenter from './presenter/presenter-page';
 
-const pageMain = document.querySelector('.page-body__page-main');
-const pageCase = pageMain.querySelector('.trip-events');
-const filterElement = document.querySelector('.trip-controls__filters');
-const presenter = new Presenter({container: pageCase});
+const pageCase = document.querySelector('.trip-events');
+const destinations = generateRandomDestinations();
+const offers = generateRandomList();
+const tripPoints = generateRandomTripPoints(destinations, offers);
 
-render(new Filters(), filterElement);
-
-presenter.init();
+const pagePresenter = new PagePresenter(pageCase);
+pagePresenter.init(tripPoints, destinations, offers);
