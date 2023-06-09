@@ -1,10 +1,7 @@
 import {createElement} from '../render.js';
 
-function createTemplatePointList() {
-  return '<ul class="trip-events__list"></ul>';
-}
-
-export default class RoutePointList{
+const createTemplatePointList = () => '<ul class="trip-events__list"></ul>';
+export default class TripPointList{
   getTemplate() {
     return createTemplatePointList();
   }
