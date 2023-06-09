@@ -37,6 +37,18 @@ export default class FilterView extends AbstractView {
           listOfPointPresenters.forEach((j) => {
             j.renderDueFilterUpdate();
           });
+          if (document.querySelector('.trip-events__item') === null) {
+            if (document.querySelector('#filter-everything').checked) {
+              document.querySelector('.trip-events__msg').textContent = 'Click New Event to create your first point';
+            } else {
+              document.querySelector('.trip-events__msg').textContent = 'There are no future events now';
+            }
+            document.querySelector('.trip-events__msg').classList.remove('visually-hidden');
+            document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
+          } else {
+            document.querySelector('.trip-events__msg').classList.add('visually-hidden');
+            document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
+          }
         });
       } else {
         i.addEventListener('click', () => {
@@ -54,6 +66,18 @@ export default class FilterView extends AbstractView {
           filteredList.forEach((j) => {
             j.renderDueFilterUpdate();
           });
+          if (document.querySelector('.trip-events__item') === null) {
+            if (document.querySelector('#filter-everything').checked) {
+              document.querySelector('.trip-events__msg').textContent = 'Click New Event to create your first point';
+            } else {
+              document.querySelector('.trip-events__msg').textContent = 'There are no future events now';
+            }
+            document.querySelector('.trip-events__msg').classList.remove('visually-hidden');
+            document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
+          } else {
+            document.querySelector('.trip-events__msg').classList.add('visually-hidden');
+            document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
+          }
         });
       }
     });
