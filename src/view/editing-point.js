@@ -38,6 +38,7 @@ function createTripPointTemplate(tripPoint, allDestinations, allOffers) {
   }
 
   let possibleDestinationsHtml = '';
+
   const possibleDestinations = destinations.map((i) => i.name);
   possibleDestinations.sort();
   possibleDestinations.forEach((i) => {
@@ -146,7 +147,6 @@ function createTripPointTemplate(tripPoint, allDestinations, allOffers) {
 
   return template;
 }
-
 export default class EditPointView extends AbstractView {
   #tripPoint = null;
   #destinations = null;
