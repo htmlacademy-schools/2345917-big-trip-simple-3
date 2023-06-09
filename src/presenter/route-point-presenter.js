@@ -78,7 +78,7 @@ export default class TripPointPresenter {
       });
       this.#tripPointEditComponent.element.querySelector('.event--edit').addEventListener('submit', (e) => {
         e.preventDefault();
-        if (this.#tripPointEditComponent.getDataToUpdatePoint().destination !== -1) {
+        if (this.#tripPointEditComponent.getDataToUpdatePoint().destination !== -1 && !isNaN(this.#tripPointEditComponent.getDataToUpdatePoint().basePrice)) {
           serverTripPoints.updateTripPoint(this.#tripPointEditComponent.getDataToUpdatePoint());
           this.#tripPointComponent.updateTripPoint(this.#tripPointEditComponent.getDataToUpdatePoint());
           changeVisibility(this.#tripPointEditComponent.element, this.#tripPointComponent.element);
