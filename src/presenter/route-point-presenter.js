@@ -53,13 +53,11 @@ export default class TripPointPresenter {
         e.preventDefault();
         this.#tripPointEditComponent.element.querySelector('.event__section--destination').innerHTML = this.#tripPointEditComponent.updateDestinationDescription(destinationField.value);
       });
-
       this.#tripPointEditComponent.element.querySelector('.event--edit').addEventListener('submit', (e) => {
         e.preventDefault();
         changeVisibility(this.#tripPointEditComponent.element, this.#tripPointComponent.element);
         this.#tripPointEditComponent.getDataToUpdatePoint();
       });
-
       changeVisibility(this.#tripPointComponent.element, this.#tripPointEditComponent.element);
     });
 
