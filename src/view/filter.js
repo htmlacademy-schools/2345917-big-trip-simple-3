@@ -16,6 +16,7 @@ function createFilterTemplate() {
       <button class="visually-hidden" type="submit">Accept filter</button>
     </form>
   `);
+
   return template;
 }
 
