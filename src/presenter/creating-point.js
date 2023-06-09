@@ -19,7 +19,7 @@ export default class CreatePointPresenter {
     this.#createPointComponent.addPickers();
     this.#createPointComponent.element.querySelector('.event--edit').addEventListener('submit', (evt) => {
       evt.preventDefault();
-      if (this.#createPointComponent.getDataToUpdatePoint().destination !== -1) {
+      if (this.#createPointComponent.getDataToUpdatePoint().destination !== -1 && !isNaN(this.#createPointComponent.getDataToUpdatePoint().basePrice)) {
         const newTripPoint = new TripPointPresenter(this.#tripPointListContainer);
         newTripPoint.init(this.#createPointComponent.getDataToUpdatePoint(), destinations, offers);
         serverTripPoints.addTripPoint(this.#createPointComponent.getDataToUpdatePoint());

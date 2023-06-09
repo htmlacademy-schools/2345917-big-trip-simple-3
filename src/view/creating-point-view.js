@@ -114,7 +114,7 @@ function createFormTemplate(destinations, offers, biggestPointId) {
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input  event__input--price" id="event-price-${newPointId}" type="text" name="event-price" value="">
+        <input class="event__input  event__input--price" id="event-price-${newPointId}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" type="text" name="event-price" value="">
       </div>
       <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
       <button class="event__reset-btn" type="reset">Cancel</button>
