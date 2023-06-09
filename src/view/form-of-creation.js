@@ -26,9 +26,7 @@ const createTemplateForm = (tripPoint) => {
     htmlImages += `
     <img class="event__photo" src="${getRandomPicture()}" alt="Event photo">`;
   }
-
   return (`<form class="event event--edit" action="#" method="post">
-
     <header class="event__header">
       <div class="event__type-wrapper">
         <label class="event__type  event__type-btn" for="event-type-toggle-1">
@@ -132,7 +130,6 @@ const createTemplateForm = (tripPoint) => {
   </form>`
   );
 };
-
 export default class NewForm {
   constructor(tripPoint) {
     this.tripPoint = tripPoint;
