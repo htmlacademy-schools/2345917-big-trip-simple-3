@@ -1,8 +1,13 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import CreatePointPresenter from '../presenter/creating-point.js';
-import { listOfPointPresenters } from '../presenter/presenter-page.js';
+import { presenters } from '../presenter/presenter-page.js';
 
-function createFilterTemplate() {
+const filterValues = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future'
+};
+
+const createFilterTemplate = () => {
   const template = (`
   <form class="trip-filters" action="#" method="get">
       <div class="trip-filters__filter">
@@ -18,7 +23,7 @@ function createFilterTemplate() {
   `);
 
   return template;
-}
+};
 
 export default class FilterView extends AbstractView {
   constructor() {
@@ -30,52 +35,53 @@ export default class FilterView extends AbstractView {
   }
 
   addListeners() {
+    const eventMessage = document.querySelector('.trip-events__msg');
     this.element.querySelectorAll('.trip-filters__filter-input').forEach((i) => {
-      if (i.value === 'everything') {
+      if (i.value === filterValues.EVERYTHING) {
         i.addEventListener('click', () => {
           document.querySelector('.trip-events__list').innerHTML = '';
-          listOfPointPresenters.forEach((j) => {
+          presenters.forEach((j) => {
             j.renderDueFilterUpdate();
           });
           if (document.querySelector('.trip-events__item') === null) {
             if (document.querySelector('#filter-everything').checked) {
-              document.querySelector('.trip-events__msg').textContent = 'Click New Event to create your first point';
+              eventMessage.textContent = 'Click New Event to create your first point';
             } else {
-              document.querySelector('.trip-events__msg').textContent = 'There are no future events now';
+              eventMessage.textContent = 'There are no future events now';
             }
-            document.querySelector('.trip-events__msg').classList.remove('visually-hidden');
+            eventMessage.classList.remove('visually-hidden');
             document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
           } else {
-            document.querySelector('.trip-events__msg').classList.add('visually-hidden');
+            eventMessage.classList.add('visually-hidden');
             document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
           }
         });
       } else {
         i.addEventListener('click', () => {
           document.querySelector('.trip-events__list').innerHTML = '';
-          const filteredList = [];
-          listOfPointPresenters.forEach((j) => {
+          const filteredPresenters = [];
+          presenters.forEach((j) => {
             if (j instanceof CreatePointPresenter ) {
-              filteredList.push(j);
+              filteredPresenters.push(j);
             } else {
               if (new Date(j.getTripPointComponent().getTripPoint().dateTo) > new Date()) {
-                filteredList.push(j);
+                filteredPresenters.push(j);
               }
             }
           });
-          filteredList.forEach((j) => {
+          filteredPresenters.forEach((j) => {
             j.renderDueFilterUpdate();
           });
           if (document.querySelector('.trip-events__item') === null) {
             if (document.querySelector('#filter-everything').checked) {
-              document.querySelector('.trip-events__msg').textContent = 'Click New Event to create your first point';
+              eventMessage.textContent = 'Click New Event to create your first point';
             } else {
-              document.querySelector('.trip-events__msg').textContent = 'There are no future events now';
+              eventMessage.textContent = 'There are no future events now';
             }
-            document.querySelector('.trip-events__msg').classList.remove('visually-hidden');
+            eventMessage.classList.remove('visually-hidden');
             document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
           } else {
-            document.querySelector('.trip-events__msg').classList.add('visually-hidden');
+            eventMessage.classList.add('visually-hidden');
             document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
           }
         });

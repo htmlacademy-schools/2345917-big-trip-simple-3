@@ -2,14 +2,12 @@ import { serverTripPoints } from '../main.js';
 import { remove, render } from '../framework/render.js';
 import EditPointView from '../view/editing-point.js';
 import TripPointView from '../view/route-point-view.js';
-import { listOfPointPresenters } from './presenter-page.js';
+import { presenters } from './presenter-page.js';
 
 export default class TripPointPresenter {
   #tripPointListContainer = null;
   #tripPointComponent = null;
   #tripPointEditComponent = null;
-  #destinations = null;
-  #offers = null;
 
   constructor(tripPointListContainer) {
     this.#tripPointListContainer = tripPointListContainer;
@@ -20,44 +18,61 @@ export default class TripPointPresenter {
   };
 
   init(tripPoint, destinations, offers) {
+    const eventMessage = document.querySelector('.trip-events__msg');
     this.#tripPointComponent = new TripPointView(tripPoint, destinations, offers);
-    listOfPointPresenters.push(this);
-    const changeVisibility = (elementToHide, elementToShow) => {
-      this.#tripPointListContainer.element.replaceChild(elementToShow, elementToHide);
-    };
+    presenters.push(this);
     this.#tripPointComponent.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
-      listOfPointPresenters.forEach((i) => {
+      presenters.forEach((i) => {
         i.closeEditor();
       });
       this.#tripPointEditComponent = new EditPointView(this.#tripPointComponent.getTripPoint(), destinations, offers);
+      this.#tripPointEditComponent.addListeners();
+      const destinationField = this.#tripPointEditComponent.element.querySelector('.event__input--destination');
+      this.#tripPointEditComponent.updateDestinationDescription(destinationField.value);
       this.#tripPointEditComponent.addPickers();
       this.#tripPointEditComponent.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
-        changeVisibility(this.#tripPointEditComponent.element, this.#tripPointComponent.element);
+        this.changeVisibility(this.#tripPointEditComponent.element, this.#tripPointComponent.element);
         this.#tripPointEditComponent.clearPickers();
         remove(this.#tripPointEditComponent);
         this.#tripPointEditComponent = null;
       });
 
+      document.addEventListener('keydown', (evt) => {
+        evt.preventDefault();
+        if (evt.key === 'Escape') {
+          this.changeVisibility(this.#tripPointEditComponent.element, this.#tripPointComponent.element);
+          this.#tripPointEditComponent.clearPickers();
+          remove(this.#tripPointEditComponent);
+          this.#tripPointEditComponent = null;
+        }
+      });
+
       this.#tripPointEditComponent.element.querySelector('.event--edit').addEventListener('reset', (e) => {
         e.preventDefault();
-        serverTripPoints.deleteTripPoint(tripPoint);
-        this.#tripPointEditComponent.clearPickers();
-        listOfPointPresenters.splice(listOfPointPresenters.indexOf(this), 1);
-        remove(this.#tripPointComponent);
-        remove(this.#tripPointEditComponent);
-        this.#tripPointEditComponent = null;
-        if (document.querySelector('.trip-events__item') === null) {
-          if (document.querySelector('#filter-everything').checked) {
-            document.querySelector('.trip-events__msg').textContent = 'Click New Event to create your first point';
+        this.#tripPointEditComponent.element.querySelector('.event__reset-btn').textContent = 'Deleting...';
+        serverTripPoints.deleteTripPoint(tripPoint).then(() => {
+          this.#tripPointEditComponent.element.querySelector('.event__reset-btn').textContent = 'Delete';
+          this.#tripPointEditComponent.clearPickers();
+          presenters.splice(presenters.indexOf(this), 1);
+          remove(this.#tripPointComponent);
+          remove(this.#tripPointEditComponent);
+          this.#tripPointEditComponent = null;
+          if (document.querySelector('.trip-events__item') === null) {
+            if (document.querySelector('#filter-everything').checked) {
+              eventMessage.textContent = 'Click New Event to create your first point';
+            } else {
+              eventMessage.textContent = 'There are no future events now';
+            }
+            eventMessage.classList.remove('visually-hidden');
+            document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
           } else {
-            document.querySelector('.trip-events__msg').textContent = 'There are no future events now';
+            eventMessage.classList.add('visually-hidden');
+            document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
           }
-          document.querySelector('.trip-events__msg').classList.remove('visually-hidden');
-          document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
-        } else {
-          document.querySelector('.trip-events__msg').classList.add('visually-hidden');
-          document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
-        }
+        }).catch(() => {
+          this.#tripPointEditComponent.shake();
+          this.#tripPointEditComponent.element.querySelector('.event__reset-btn').textContent = 'Delete';
+        });
       });
 
       const typeFieldset = this.#tripPointEditComponent.element.querySelector('.event__type-group');
@@ -68,43 +83,48 @@ export default class TripPointPresenter {
             this.#tripPointEditComponent.element.querySelector('.event__type-icon').src = `img/icons/${radio.value}.png`;
             this.#tripPointEditComponent.element.querySelector('.event__type-output').textContent = radio.value;
             this.#tripPointEditComponent.element.querySelector('.event__section--offers').innerHTML = this.#tripPointEditComponent.updateOffersDueTypeUpdate(radio.value);
+            this.#tripPointListContainer.element.querySelectorAll('.event__offer-checkbox').forEach((i) => {
+              i.checked = false;
+            });
           }
         });
       });
-      const destinationField = this.#tripPointEditComponent.element.querySelector('.event__input--destination');
-      destinationField.addEventListener('input', (e) => {
-        e.preventDefault();
-        this.#tripPointEditComponent.element.querySelector('.event__section--destination').innerHTML = this.#tripPointEditComponent.updateDestinationDescription(destinationField.value);
-      });
       this.#tripPointEditComponent.element.querySelector('.event--edit').addEventListener('submit', (e) => {
         e.preventDefault();
-        if (this.#tripPointEditComponent.getDataToUpdatePoint().destination !== -1 && !isNaN(this.#tripPointEditComponent.getDataToUpdatePoint().basePrice)) {
-          serverTripPoints.updateTripPoint(this.#tripPointEditComponent.getDataToUpdatePoint());
-          this.#tripPointComponent.updateTripPoint(this.#tripPointEditComponent.getDataToUpdatePoint());
-          changeVisibility(this.#tripPointEditComponent.element, this.#tripPointComponent.element);
-          this.#tripPointEditComponent.clearPickers();
-          remove(this.#tripPointEditComponent);
-          this.#tripPointEditComponent = null;
-          if (document.querySelector('.trip-events__item') === null) {
-            if (document.querySelector('#filter-everything').checked) {
-              document.querySelector('.trip-events__msg').textContent = 'Click New Event to create your first point';
+        this.#tripPointEditComponent.element.querySelector('.event__save-btn').textContent = 'Saving...';
+        const newTripPointDate = this.#tripPointEditComponent.getDataToUpdatePoint();
+        if (newTripPointDate.destination !== -1 && !isNaN(newTripPointDate.basePrice)) {
+          serverTripPoints.updateTripPoint(newTripPointDate).then(() => {
+            this.#tripPointEditComponent.element.querySelector('.event__save-btn').textContent = 'Save';
+            this.#tripPointComponent.updateTripPoint(newTripPointDate);
+            this.changeVisibility(this.#tripPointEditComponent.element, this.#tripPointComponent.element);
+            this.#tripPointEditComponent.clearPickers();
+            remove(this.#tripPointEditComponent);
+            this.#tripPointEditComponent = null;
+            if (document.querySelector('.trip-events__item') === null) {
+              if (document.querySelector('#filter-everything').checked) {
+                eventMessage.textContent = 'Click New Event to create your first point';
+              } else {
+                eventMessage.textContent = 'There are no future events now';
+              }
+              eventMessage.classList.remove('visually-hidden');
+              document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
             } else {
-              document.querySelector('.trip-events__msg').textContent = 'There are no future events now';
+              eventMessage.classList.add('visually-hidden');
+              document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
             }
-            document.querySelector('.trip-events__msg').classList.remove('visually-hidden');
-            document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
-          } else {
-            document.querySelector('.trip-events__msg').classList.add('visually-hidden');
-            document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
-          }
+          }).catch(() => {
+            this.#tripPointEditComponent.shake();
+            this.#tripPointEditComponent.element.querySelector('.event__save-btn').textContent = 'Save';
+          });
+        } else {
+          this.#tripPointEditComponent.shake();
         }
       });
 
-      changeVisibility(this.#tripPointComponent.element, this.#tripPointEditComponent.element);
+      this.changeVisibility(this.#tripPointComponent.element, this.#tripPointEditComponent.element);
     });
     render(this.#tripPointComponent, this.#tripPointListContainer.element);
-    this.#destinations = destinations;
-    this.#offers = offers;
   }
 
   closeEditor() {

@@ -6,10 +6,16 @@ let tripPoints = null;
 let destinations = null;
 let offers = null;
 
-export const serverTripPoints = new TripPointApiService('https://18.ecmascript.pages.academy/big-trip', 'Basic wrkjlsfoi3453459a');
+const apiData = {
+  SERVER: 'https://18.ecmascript.pages.academy/big-trip',
+  AUTH: 'Basic wrkjlsfoi3453459a'
+};
+
+export const serverTripPoints = new TripPointApiService(apiData.SERVER, apiData.AUTH);
 
 const noPointViewPresenter = new NoPointViewPresenter(document.querySelector('.trip-events'));
 noPointViewPresenter.init();
+const eventMessage = document.querySelector('.trip-events__msg');
 serverTripPoints.tripPoints.then((badFormatPoints) => {
   const formattedListPoints = [];
   badFormatPoints.forEach((i) => {
@@ -26,14 +32,21 @@ serverTripPoints.tripPoints.then((badFormatPoints) => {
   });
   tripPoints = formattedListPoints;
   serverTripPoints.destinations.then((j) => {
+
     destinations = j;
     serverTripPoints.offers.then((g) => {
       offers = g;
       const pageContainer = document.querySelector('.trip-events');
-      document.querySelector('.trip-events__msg').textContent = '';
-      document.querySelector('.trip-events__msg').classList.add('visually-hidden');
+      eventMessage.textContent = '';
+      eventMessage.classList.add('visually-hidden');
       const pagePresenter = new PagePresenter(pageContainer);
       pagePresenter.init(tripPoints, destinations, offers);
+    }).catch(() => {
+      eventMessage.textContent = 'Error. Please, reload this page.';
     });
+  }).catch(() => {
+    eventMessage.textContent = 'Error. Please, reload this page.';
   });
+}).catch(() => {
+  eventMessage.textContent = 'Error. Please, reload this page.';
 });
