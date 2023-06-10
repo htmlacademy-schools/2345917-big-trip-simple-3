@@ -3,7 +3,7 @@ import { refinePointEditorDueDate } from '../utils.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
-function createTripPointTemplate(tripPoint, allDestinations, allOffers) {
+const createTripPointTemplate = (tripPoint, allDestinations, allOffers) => {
   const basePrice = tripPoint.basePrice;
   const dateFrom = tripPoint.dateFrom;
   const dateTo = tripPoint.dateTo;
@@ -46,11 +46,6 @@ function createTripPointTemplate(tripPoint, allDestinations, allOffers) {
       <option value="${i}"></option>
     `);
   });
-
-  const destinationDescription = (`
-    <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-    <p class="event__destination-description">${destinations.filter((i) => i.id === destinationId)[0].description}</p>
-  `);
 
   const template = (`
 <li class="trip-events__item">
@@ -134,19 +129,24 @@ function createTripPointTemplate(tripPoint, allDestinations, allOffers) {
       </button>
     </header>
     <section class="event__details">
-        <section class="event__section  event__section--offers">
-          ${possibleOffersHtml}
-        </section>
-        <section class="event__section  event__section--destination">
-          ${destinationDescription}
-        </section>
+    <section class="event__section  event__section--offers">
+      ${possibleOffersHtml}
     </section>
+    <section class="event__section  event__section--destination">
+      <h3 class="event__section-title  event__section-title--destination"></h3>
+      <p class="event__destination-description"></p>
+      <div class="event__photos-container">
+        <div class="event__photos-tape">
+        </div>
+      </div>
+    </section>
+  </section>
   </form>
 </li>
   `);
 
   return template;
-}
+};
 export default class EditPointView extends AbstractView {
   #tripPoint = null;
   #destinations = null;
@@ -196,14 +196,29 @@ export default class EditPointView extends AbstractView {
   }
 
   updateDestinationDescription(destinationName) {
-    if (this.#destinations.map((i) => i.name).includes(destinationName)) {
-      return (`
-        <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-        <p class="event__destination-description">${this.#destinations.filter((i) => i.name === destinationName)[0].description}</p>
-      `);
+    if (this.#destinations.some((x) => x.name === destinationName)) {
+      this.element.querySelector('.event__section-title--destination').textContent = 'Destination';
+      this.element.querySelector('.event__destination-description').textContent = `${this.#destinations.filter((i) => i.name === destinationName)[0].description}`;
+      let picturesHtml = '';
+      this.#destinations.filter((i) => i.name === destinationName)[0].pictures.forEach((i) => {
+        picturesHtml += `
+        <img class="event__photo" src=${i.src} alt="${i.description}">
+        `;
+      });
+      this.element.querySelector('.event__photos-tape').innerHTML = picturesHtml;
     } else {
-      return '';
+      this.element.querySelector('.event__section-title--destination').textContent = '';
+      this.element.querySelector('.event__destination-description').textContent = '';
+      this.element.querySelector('.event__photos-tape').innerHTML = '';
     }
+  }
+
+  addListeners() {
+    const destinationField = this.element.querySelector('.event__input--destination');
+    destinationField.addEventListener('input', (e) => {
+      e.preventDefault();
+      this.updateDestinationDescription(destinationField.value);
+    });
   }
 
   getDataToUpdatePoint() {
@@ -226,12 +241,7 @@ export default class EditPointView extends AbstractView {
     const minutesTo = partsTo[4];
     const dateToFormatted = new Date(`20${yearTo}-${monthTo}-${dayTo}T${hoursTo}:${minutesTo}:00`).toISOString();
     const type = from.querySelector('.event__type-output').textContent.replace(/\s/g, '');
-    let destinationId;
-    if (this.#destinations.map((i) => i.name).includes(from.querySelector('.event__input--destination').value)) {
-      destinationId = this.#destinations.filter((i) => i.name === from.querySelector('.event__input--destination').value)[0].id;
-    } else {
-      destinationId = -1;
-    }
+    const destinationId = this.#destinations.find((i) => i.name === from.querySelector('.event__input--destination').value)?.id ?? -1;
     const id = this.#tripPoint.id;
 
     const offersHtml = from.querySelectorAll('.event__offer-checkbox');

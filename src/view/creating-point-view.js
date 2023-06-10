@@ -2,9 +2,9 @@ import AbstractView from '../framework/view/abstract-view';
 import { remove } from '../framework/render';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
-import { listOfPointPresenters } from '../presenter/presenter-page';
+import { presenters } from '../presenter/presenter-page';
 
-function createFormTemplate(destinations, offers, biggestPointId) {
+const createFormTemplate = (destinations, offers, biggestPointId) => {
   const newPointId = biggestPointId + 1;
   const type = 'flight';
   const possibleOffers = offers.filter((i) => i.type === type)[0].offers;
@@ -30,7 +30,6 @@ function createFormTemplate(destinations, offers, biggestPointId) {
       </div>
     `);
   }
-
   let possibleDestinationsHtml = '';
   const possibleDestinations = destinations.map((i) => i.name);
   possibleDestinations.sort();
@@ -39,8 +38,6 @@ function createFormTemplate(destinations, offers, biggestPointId) {
       <option value="${i}"></option>
     `);
   });
-
-
   const template = (`
   <li class="trip-events__item">
   <form class="event event--edit" action="#" method="post">
@@ -136,8 +133,7 @@ function createFormTemplate(destinations, offers, biggestPointId) {
 </li>
   `);
   return template;
-}
-
+};
 export default class CreatePointComponent extends AbstractView {
   #destinations = null;
   #offers = null;
@@ -218,12 +214,20 @@ export default class CreatePointComponent extends AbstractView {
 
     this.element.querySelector('.event--edit').addEventListener('reset', () => {
       remove(this);
-      listOfPointPresenters.splice(listOfPointPresenters.indexOf(this), 1);
+      presenters.splice(presenters.indexOf(this), 1);
     });
+
+    document.addEventListener('keydown', (evt) => {
+      if (evt.key === 'Escape') {
+        remove(this);
+        presenters.splice(presenters.indexOf(this), 1);
+      }
+    });
+
   }
 
   updateDestinationDescription(destinationName) {
-    if (this.#destinations.map((i) => i.name).includes(destinationName)) {
+    if (this.#destinations.some((x) => x.name === destinationName)) {
       this.element.querySelector('.event__section-title--destination').textContent = 'Destination';
       this.element.querySelector('.event__destination-description').textContent = `${this.#destinations.filter((i) => i.name === destinationName)[0].description}`;
       let picturesHtml = '';
@@ -285,12 +289,7 @@ export default class CreatePointComponent extends AbstractView {
     const minutesTo = partsTo[4];
     const dateToFormatted = new Date(`20${yearTo}-${monthTo}-${dayTo}T${hoursTo}:${minutesTo}:00`).toISOString();
     const type = from.querySelector('.event__type-output').textContent.replace(/\s/g, '').toLowerCase();
-    let destinationId;
-    if (this.#destinations.map((i) => i.name).includes(from.querySelector('.event__input--destination').value)) {
-      destinationId = this.#destinations.filter((i) => i.name === from.querySelector('.event__input--destination').value)[0].id;
-    } else {
-      destinationId = -1;
-    }
+    const destinationId = this.#destinations.find((i) => i.name === from.querySelector('.event__input--destination').value)?.id ?? -1;
     const id = this.#biggestOfferId + 1;
 
     const offersHtml = from.querySelectorAll('.event__offer-checkbox');

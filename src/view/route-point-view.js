@@ -1,7 +1,7 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { getDateWithoutTime, getDateTime, refinePointDueDate } from '../utils.js';
 
-function createTripPointTemplate(tripPoint, allDestinations, allOffers) {
+const createTripPointTemplate = (tripPoint, allDestinations, allOffers) => {
   const basePrice = tripPoint.basePrice;
   const dateFrom = tripPoint.dateFrom;
   const dateTo = tripPoint.dateTo;
@@ -57,7 +57,7 @@ function createTripPointTemplate(tripPoint, allDestinations, allOffers) {
   `);
 
   return template;
-}
+};
 
 export default class TripPointView extends AbstractView {
   #tripPoint = null;

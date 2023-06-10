@@ -5,7 +5,7 @@ import CreatePointPresenter from './creating-point';
 import FilterPresenter from './filter-presenter';
 import SortPresenter from './sorting-presenter';
 
-export const listOfPointPresenters = [];
+export const presenters = [];
 
 export default class PagePresenter {
   #pageContainer = null;
@@ -26,7 +26,7 @@ export default class PagePresenter {
     const createPointPresenter = new CreatePointPresenter(this.#tripPointListContainer);
     const sortPresenter = new SortPresenter(this.#pageContainer);
     this.#pageContainer.parentNode.parentNode.parentNode.querySelector('.trip-main__event-add-btn').addEventListener('click', () => {
-      listOfPointPresenters.forEach((i) => {
+      presenters.forEach((i) => {
         i.closeEditor();
       });
       createPointPresenter.init(destinations, offers, tripPointList, sortPresenter);

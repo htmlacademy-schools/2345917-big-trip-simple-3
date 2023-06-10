@@ -1,7 +1,7 @@
 import { remove, render } from '../framework/render.js';
 import CreatePointComponent from '../view/creating-point-view.js';
 import TripPointPresenter from './route-point-presenter.js';
-import { listOfPointPresenters } from './presenter-page.js';
+import { presenters } from './presenter-page.js';
 import { serverTripPoints } from '../main.js';
 
 export default class CreatePointPresenter {
@@ -12,52 +12,62 @@ export default class CreatePointPresenter {
   }
 
   init(destinations, offers, tripPointList, sortPresenter) {
+    const eventMessage = document.querySelector('.trip-events__msg');
     const biggestPointId = tripPointList.reduce((prev, current) => (prev.randomNum > current.randomNum) ? prev : current).id;
     this.#createPointComponent = new CreatePointComponent(destinations, offers, biggestPointId);
-    listOfPointPresenters.push(this);
+    presenters.push(this);
     this.#createPointComponent.setListeners();
     this.#createPointComponent.addPickers();
     this.#createPointComponent.element.querySelector('.event--edit').addEventListener('submit', (evt) => {
       evt.preventDefault();
-      if (this.#createPointComponent.getDataToUpdatePoint().destination !== -1 && !isNaN(this.#createPointComponent.getDataToUpdatePoint().basePrice)) {
-        const newTripPoint = new TripPointPresenter(this.#tripPointListContainer);
-        newTripPoint.init(this.#createPointComponent.getDataToUpdatePoint(), destinations, offers);
-        serverTripPoints.addTripPoint(this.#createPointComponent.getDataToUpdatePoint());
-        listOfPointPresenters.splice(listOfPointPresenters.indexOf(this), 1);
-        remove(this.#createPointComponent);
-        sortPresenter.goToDaySort();
-        if (document.querySelector('.trip-events__item') === null) {
-          if (document.querySelector('#filter-everything').checked) {
-            document.querySelector('.trip-events__msg').textContent = 'Click New Event to create your first point';
+      const newTripPointData = this.#createPointComponent.getDataToUpdatePoint();
+      if (newTripPointData.destination !== -1 && !isNaN(newTripPointData.basePrice)) {
+        this.#createPointComponent.element.querySelector('.event__save-btn').textContent = 'Saving...';
+        serverTripPoints.addTripPoint(newTripPointData).then(() => {
+          this.#createPointComponent.element.querySelector('.event__save-btn').textContent = 'Save';
+          const newTripPoint = new TripPointPresenter(this.#tripPointListContainer);
+          newTripPoint.init(newTripPointData, destinations, offers);
+          presenters.splice(presenters.indexOf(this), 1);
+          remove(this.#createPointComponent);
+          sortPresenter.goToDaySort();
+          if (document.querySelector('.trip-events__item') === null) {
+            if (document.querySelector('#filter-everything').checked) {
+              eventMessage.textContent = 'Click New Event to create your first point';
+            } else {
+              eventMessage.textContent = 'There are no future events now';
+            }
+            eventMessage.classList.remove('visually-hidden');
+            document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
           } else {
-            document.querySelector('.trip-events__msg').textContent = 'There are no future events now';
+            eventMessage.classList.add('visually-hidden');
+            document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
           }
-          document.querySelector('.trip-events__msg').classList.remove('visually-hidden');
-          document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
-        } else {
-          document.querySelector('.trip-events__msg').classList.add('visually-hidden');
-          document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
-        }
+        }).catch(() => {
+          this.#createPointComponent.shake();
+          this.#createPointComponent.element.querySelector('.event__save-btn').textContent = 'Save';
+        });
+      } else {
+        this.#createPointComponent.shake();
       }
     });
     render(this.#createPointComponent, this.#tripPointListContainer.element, 'afterbegin');
     if (document.querySelector('.trip-events__item') === null) {
       if (document.querySelector('#filter-everything').checked) {
-        document.querySelector('.trip-events__msg').textContent = 'Click New Event to create your first point';
+        eventMessage.textContent = 'Click New Event to create your first point';
       } else {
-        document.querySelector('.trip-events__msg').textContent = 'There are no future events now';
+        eventMessage.textContent = 'There are no future events now';
       }
-      document.querySelector('.trip-events__msg').classList.remove('visually-hidden');
+      eventMessage.classList.remove('visually-hidden');
       document.querySelector('.trip-events__trip-sort').classList.add('visually-hidden');
     } else {
-      document.querySelector('.trip-events__msg').classList.add('visually-hidden');
+      eventMessage.classList.add('visually-hidden');
       document.querySelector('.trip-events__trip-sort').classList.remove('visually-hidden');
     }
   }
 
   closeEditor() {
     this.#createPointComponent.clearPickers();
-    listOfPointPresenters.splice(listOfPointPresenters.indexOf(this), 1);
+    presenters.splice(presenters.indexOf(this), 1);
     remove(this.#createPointComponent);
     this.#createPointComponent = null;
   }
