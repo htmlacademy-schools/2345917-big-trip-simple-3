@@ -14,6 +14,7 @@ const createTripPointTemplate = (tripPoint, allDestinations, allOffers) => {
   const destinations = allDestinations;
   const offers = allOffers;
   const possibleOffers = offers.filter((i) => i.type === type)[0].offers;
+
   let possibleOffersHtml = '';
   if (possibleOffers.length > 0) {
     possibleOffersHtml += (`
